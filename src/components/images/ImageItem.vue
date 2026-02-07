@@ -1,13 +1,14 @@
 <script setup lang="ts">
+  import type { BygImage } from '@bygnet/types'
   import { Icon } from '@iconify/vue'
   import { useRouter } from 'vue-router'
 
   import HStack from '@/components/layout/HStack.vue'
   import VStack from '@/components/layout/VStack.vue'
   import LikeButton from '@/components/posts/LikeButton.vue'
+  import ReportButton from '@/components/posts/ReportButton.vue'
   import ShareButton from '@/components/posts/ShareButton.vue'
   import UsernameView from '@/components/posts/UsernameView.vue'
-  import type { BygImage } from '@/types/contentTypes'
   import { formatDate } from '@/utils/formatters.ts'
 
   const props = defineProps<{
@@ -50,12 +51,16 @@
           </HStack>
         </HStack>
 
-        <ShareButton
-          :id="image.id"
-          :shares="image.shares"
-          api-path="/share-image"
-          :compact="!detailMode"
-        />
+        <HStack>
+          <ShareButton
+            :id="image.id"
+            :shares="image.shares"
+            api-path="/share-image"
+            :compact="!detailMode"
+          />
+
+          <ReportButton />
+        </HStack>
       </HStack>
     </VStack>
   </div>
@@ -72,6 +77,9 @@
 
     &:not(.detail)
       @include utils.itemBackground
+
+      img
+        border-radius: 1rem
 
     &.detail
       cursor: default

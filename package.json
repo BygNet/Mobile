@@ -1,6 +1,6 @@
 {
   "name": "@bygnet/mobile",
-  "version": "1.1.0",
+  "version": "1.2.2",
   "private": false,
   "type": "module",
   "scripts": {
@@ -16,6 +16,7 @@
     "run:ios": "bunx cap run ios"
   },
   "dependencies": {
+    "@bygnet/types": "^1.2.0",
     "@capacitor/cli": "^8.0.2",
     "@capacitor/core": "^8.0.2",
     "@capacitor/ios": "^8.0.2",

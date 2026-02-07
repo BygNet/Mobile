@@ -1,4 +1,5 @@
 <script setup lang="ts">
+  import type { BygPost } from '@bygnet/types'
   import { Icon } from '@iconify/vue'
   import DOMPurify from 'dompurify'
   import { marked } from 'marked'
@@ -7,9 +8,9 @@
   import HStack from '@/components/layout/HStack.vue'
   import VStack from '@/components/layout/VStack.vue'
   import LikeButton from '@/components/posts/LikeButton.vue'
+  import ReportButton from '@/components/posts/ReportButton.vue'
   import ShareButton from '@/components/posts/ShareButton.vue'
   import UsernameView from '@/components/posts/UsernameView.vue'
-  import type { BygPost } from '@/types/contentTypes.ts'
   import { formatDate } from '@/utils/formatters.ts'
 
   const props = defineProps<{
@@ -93,12 +94,16 @@
         </HStack>
       </HStack>
 
-      <ShareButton
-        :id="post.id"
-        :shares="post.shares"
-        api-path="/share-post"
-        :compact="!detailMode"
-      />
+      <HStack>
+        <ShareButton
+          :id="post.id"
+          :shares="post.shares"
+          api-path="/share-post"
+          :compact="!detailMode"
+        />
+
+        <ReportButton />
+      </HStack>
     </HStack>
   </div>
 </template>
