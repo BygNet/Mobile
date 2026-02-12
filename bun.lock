@@ -43,6 +43,8 @@
     },
   },
   "packages": {
+    "@a35hie/ts-pkg": ["@a35hie/ts-pkg@0.3.1", "", { "peerDependencies": { "typescript": "^5.9.3" }, "bin": { "ts-pkg": "dist/cli.js" } }, "sha512-YQexb8HtH3HlikDBhlTabfi8t6DzbuqigdMYDw5BbiP9+p+Y5Vas7B7hFTTUccyL93okijb84mRu6vV4AyXslQ=="],
+
     "@apideck/better-ajv-errors": ["@apideck/better-ajv-errors@0.3.6", "", { "dependencies": { "json-schema": "^0.4.0", "jsonpointer": "^5.0.0", "leven": "^3.1.0" }, "peerDependencies": { "ajv": ">=8" } }, "sha512-P+ZygBLZtkp0qqOAJJVX4oX/sFo5JR3eBWwwuqHHhK0GIgQOKWrAfiAaWX0aArHkRWHMuggFEgAZNxVPwPZYaA=="],
 
     "@babel/code-frame": ["@babel/code-frame@7.27.1", "", { "dependencies": { "@babel/helper-validator-identifier": "^7.27.1", "js-tokens": "^4.0.0", "picocolors": "^1.1.1" } }, "sha512-cjQ7ZlQ0Mv3b47hABuTevyTuYN4i+loJKGeV9flcCgIK37cCXRh+L1bd3iBHlynerhQ7BhCkn2BPbQUL+rGqFg=="],

@@ -1,14 +1,30 @@
 <script setup lang="ts">
   import type { BygPost } from '@bygnet/types'
-  import { nextTick, onMounted, onUnmounted, type Ref, ref } from 'vue'
+  import {
+    computed,
+    nextTick,
+    onMounted,
+    onUnmounted,
+    type Ref,
+    ref,
+  } from 'vue'
 
+  import { api } from '@/api/client'
+  import { auth } from '@/auth/session'
   import ContentArea from '@/components/layout/ContentArea.vue'
   import EmptyState from '@/components/layout/EmptyState.vue'
   import ErrorState from '@/components/layout/ErrorState.vue'
   import VStack from '@/components/layout/VStack.vue'
   import NewPostsAvailable from '@/components/posts/NewPostAvailable.vue'
   import PostItem from '@/components/posts/PostItem.vue'
-  import { adCache, postCache, postCacheTime } from '@/data/caches'
+  import {
+    adCache,
+    getCachedCurrentUser,
+    POST_CACHE_TTL,
+    postCache,
+    postCacheTime,
+    setCachedCurrentUser,
+  } from '@/data/caches'
   import { reloader } from '@/data/events.ts'
   import { title } from '@/data/title.ts'
   import setHeadMeta from '@/utils/setHeadMeta.ts'
@@ -18,7 +34,14 @@
   const isLoaded: Ref<boolean> = ref(false)
   const error: Ref<string | null> = ref(null)
   const hasNewPosts: Ref<boolean> = ref(false)
-  const CACHE_TTL = 30_000
+  const userSubscriptionState: Ref<string | null> = ref(null)
+  const subscriptionVerified: Ref<boolean> = ref(false)
+
+  const isFreeUser = computed(() => {
+    return (
+      !userSubscriptionState.value || userSubscriptionState.value === 'free'
+    )
+  })
 
   let interval: number | undefined
 
@@ -31,7 +54,10 @@
   const loadPosts = async () => {
     try {
       // use cache if fresh
-      if (postCache.value && Date.now() - postCacheTime.value < CACHE_TTL) {
+      if (
+        postCache.value &&
+        Date.now() - postCacheTime.value < POST_CACHE_TTL
+      ) {
         posts.value = postCache.value
         hasNewPosts.value = false
         return
@@ -49,6 +75,34 @@
       error.value = 'Failed to load posts.'
     } finally {
       isLoaded.value = true
+    }
+  }
+
+  const loadUserSubscription = async () => {
+    if (!auth.user) {
+      subscriptionVerified.value = true
+      return
+    }
+
+    // Check cache first
+    const cached = getCachedCurrentUser()
+    if (cached) {
+      userSubscriptionState.value = cached.subscriptionState ?? null
+      subscriptionVerified.value = true
+      return
+    }
+
+    try {
+      const res = await api('/profile-me')
+      if (res.ok) {
+        const profile = await res.json()
+        userSubscriptionState.value = profile.user?.subscriptionState ?? null
+        setCachedCurrentUser(profile.user)
+      }
+    } catch (err) {
+      console.error('Failed to load user subscription:', err)
+    } finally {
+      subscriptionVerified.value = true
     }
   }
 
@@ -81,6 +135,7 @@
 
   onMounted(async () => {
     await loadPosts()
+    await loadUserSubscription()
     interval = window.setInterval(checkForNewPosts, 10000)
   })
 
@@ -114,7 +169,12 @@
         </RouterLink>
 
         <AdView
-          v-if="adCache.length > 0 && Math.floor(Math.random() * 5) + 1 == 1"
+          v-if="
+            subscriptionVerified &&
+            isFreeUser &&
+            adCache.length > 0 &&
+            Math.floor(Math.random() * 5) + 1 == 1
+          "
           :ad="adCache.randomElement()!"
         />
       </VStack>
