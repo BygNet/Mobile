@@ -35,6 +35,8 @@
     BygMessageThread,
   } from '@/types/messages'
   import setHeadMeta from '@/utils/setHeadMeta'
+  import VStack from "@/components/layout/VStack.vue";
+  import {showingNavigation} from "@/data/visibility.ts";
 
   title.value = 'Chat'
   setHeadMeta({
@@ -466,14 +468,49 @@
 
   async function loadThreads(options: { force?: boolean } = {}): Promise<void> {
     loadingThreads.value = true
+    let loadedInitialData = false
     try {
       const loadedThreads = await fetchMessageThreads(options)
       threads.value = sortThreadsByDate(loadedThreads)
+      loadedInitialData = true
+
+      if (!options.force) {
+        try {
+          const refreshedThreads = await fetchMessageThreads({ force: true })
+          threads.value = sortThreadsByDate(refreshedThreads)
+        } catch {
+          if (!loadedInitialData) {
+            throw new Error('thread_refresh_failed')
+          }
+        }
+      }
     } catch {
       error.value = 'Failed to load chat threads.'
     } finally {
       loadingThreads.value = false
     }
+  }
+
+  async function applyConversationSnapshot(
+    conversation: BygMessageConversation
+  ): Promise<void> {
+    selectedThread.value = {
+      userId: conversation.userId,
+      username: conversation.username,
+      avatarUrl: conversation.avatarUrl,
+      subscriptionState: conversation.subscriptionState,
+      lastMessagePreview: previewFromMessage(
+        conversation.messages[conversation.messages.length - 1]
+      ),
+      lastMessageDate:
+        conversation.messages[conversation.messages.length - 1]?.createdDate ??
+        new Date().toISOString(),
+    }
+    upsertThread(selectedThread.value)
+
+    messages.value = conversation.messages
+    resetOutgoingDeliveryState()
+    await scrollConversationToBottom()
   }
 
   async function loadConversation(
@@ -485,6 +522,7 @@
 
     loadingConversation.value = true
     error.value = null
+    let loadedInitialConversation = false
 
     try {
       const conversation = await fetchMessageConversation(
@@ -498,23 +536,37 @@
         return
       }
 
-      selectedThread.value = {
-        userId: conversation.userId,
-        username: conversation.username,
-        avatarUrl: conversation.avatarUrl,
-        subscriptionState: conversation.subscriptionState,
-        lastMessagePreview: previewFromMessage(
-          conversation.messages[conversation.messages.length - 1]
-        ),
-        lastMessageDate:
-          conversation.messages[conversation.messages.length - 1]
-            ?.createdDate ?? new Date().toISOString(),
+      if (
+        selectedThread.value &&
+        normalizeUsername(selectedThread.value.username) !== activeUsername
+      ) {
+        return
       }
-      upsertThread(selectedThread.value)
 
-      messages.value = conversation.messages
-      resetOutgoingDeliveryState()
-      await scrollConversationToBottom()
+      await applyConversationSnapshot(conversation)
+      loadedInitialConversation = true
+
+      if (!options.force) {
+        try {
+          const refreshedConversation = await fetchMessageConversation(
+            activeUsername,
+            { force: true }
+          )
+          if (!refreshedConversation) return
+          if (
+            selectedThread.value &&
+            normalizeUsername(selectedThread.value.username) !== activeUsername
+          ) {
+            return
+          }
+
+          await applyConversationSnapshot(refreshedConversation)
+        } catch {
+          if (!loadedInitialConversation) {
+            throw new Error('conversation_refresh_failed')
+          }
+        }
+      }
     } catch {
       error.value = 'Failed to load conversation.'
     } finally {
@@ -873,6 +925,8 @@
   }
 
   onMounted(async () => {
+    showingNavigation.value = false
+
     mainEl = document.querySelector('main')
     if (mainEl) {
       savedOverflowY = mainEl.style.overflowY
@@ -887,6 +941,7 @@
   })
 
   onUnmounted(() => {
+    showingNavigation.value = true
     allowSocketReconnect = false
     stopTypingSignal()
     clearTypingIndicators()
@@ -963,7 +1018,14 @@
         :class="{ only: !shouldShowConversationPane }"
       >
         <header class="threadsHeader">
-          <h3>Chats</h3>
+          <RouterLink to="/">
+            <button class="backButton transparent">
+              <Icon icon="solar:alt-arrow-left-line-duotone" />
+              Back
+            </button>
+          </RouterLink>
+
+          <h3>Byg Chat</h3>
 
           <button
             class="refreshThreadsButton"
@@ -971,6 +1033,7 @@
             @click="loadThreads({ force: true })"
           >
             <Icon icon="solar:refresh-line-duotone" />
+            Reload
           </button>
         </header>
 
@@ -1026,14 +1089,6 @@
               <h3 v-if="selectedThread">@{{ selectedThread.username }}</h3>
               <h3 v-else>Select a chat</h3>
 
-              <HStack
-                class="typingIndicator"
-                v-if="selectedThread && typingByUserId[selectedThread.userId]"
-              >
-                <Icon icon="solar:keyboard-line-duotone" />
-                <p class="light">Typing...</p>
-              </HStack>
-
               <HStack class="connectionState">
                 <Icon
                   :icon="
@@ -1082,28 +1137,38 @@
             </template>
           </div>
 
-          <div class="composer" @click.stop>
-            <textarea
-              v-model="composerText"
-              class="composerInput"
-              placeholder="Type a message..."
-              :disabled="!selectedThread || sendingMessage"
-              @input="onComposerInput"
-              @blur="stopTypingSignal"
-              @keydown.enter.exact.prevent="sendCurrentMessage"
-            />
-
-            <button
-              class="prominent sendButton"
-              :disabled="
-                !selectedThread || sendingMessage || !composerText.trim()
-              "
-              @click="sendCurrentMessage"
+          <VStack class="composer" @click.stop>
+            <HStack
+              class="typingIndicator"
+              v-if="selectedThread && typingByUserId[selectedThread.userId]"
             >
-              <Icon icon="solar:plain-line-duotone" />
-              Send
-            </button>
-          </div>
+              <Icon icon="svg-spinners:3-dots-move" />
+              <p>Typing...</p>
+            </HStack>
+
+            <HStack class="input">
+              <textarea
+                v-model="composerText"
+                class="composerInput"
+                placeholder="Type a message..."
+                :disabled="!selectedThread || sendingMessage"
+                @input="onComposerInput"
+                @blur="stopTypingSignal"
+                @keydown.enter.exact.prevent="sendCurrentMessage"
+              />
+
+              <button
+                class="prominent sendButton"
+                :disabled="
+                  !selectedThread || sendingMessage || !composerText.trim()
+                "
+                @click="sendCurrentMessage"
+              >
+                <Icon icon="solar:plain-line-duotone" />
+                Send
+              </button>
+            </HStack>
+          </VStack>
         </div>
       </section>
     </HStack>
@@ -1116,14 +1181,15 @@
 
   .messagesLayout
     width: 100%
-    height: calc(100dvh - 7rem)
+    height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 3rem)
+    padding-top: env(safe-area-inset-top)
     align-items: stretch
     flex-wrap: nowrap
     gap: 0.75rem
     padding-bottom: max(env(safe-area-inset-bottom), 0rem)
 
     .threadsPane
-      min-width: 20rem
+      min-width: 18rem
       display: flex
       flex-direction: column
       gap: 1rem
@@ -1170,7 +1236,7 @@
         .conversationTitleWrap, .conversationTitle
           align-items: flex-start
 
-        .connectionState, .typingIndicator
+        .connectionState
           gap: 0.25rem
 
       .conversationBody
@@ -1196,24 +1262,23 @@
             text-align: center
 
         .composer
-          flex-direction: row
-          gap: 1rem
           width: 100%
 
-          textarea
-            height: 2rem
-            resize: vertical
-            border-radius: 1rem
-            flex-grow: 1
+          .typingIndicator
+            gap: 0.25rem
+
+          .input
+            gap: 1rem
+            width: 100%
+
+            textarea
+              height: 2rem
+              resize: vertical
+              border-radius: 1rem
+              flex-grow: 1
 
   @media (max-width: variables.$mobileWidth)
     .messagesLayout
-      height: calc(100dvh - 7rem - 3.5rem)
-      padding-top: 1rem
+      height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 2rem)
       padding-bottom: calc(max(env(safe-area-inset-bottom), 0.75rem) + 0.15rem)
-</style>
-
-<style lang="sass">
-  .bygMobileNav > .createButton
-    display: none
 </style>
