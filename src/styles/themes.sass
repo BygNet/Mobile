@@ -1,20 +1,20 @@
 // Light theme colors
 html.auto, html.light
-  --backgroundColor: #bee7f3
-  --foregroundColor: rgba(111, 163, 161, 0.25)
-  --foregroundOpaque: rgb(89, 165, 172)
+  --backgroundColor: #fdd1ff
+  --foregroundColor: rgb(188 131 183 / 0.25)
+  --foregroundOpaque: rgb(162, 143, 201)
   --textColor: rgba(0, 0, 0, 0.9)
-  --accentColor: rgb(117, 188, 232)
-  --shadowColor: rgba(6, 63, 73, 0.8)
+  --accentColor: rgb(232 117 182)
+  --shadowColor: rgb(92 15 88 / 0.8)
 
 // Dark theme colors
 :root
-  --dark-backgroundColor: #001823
-  --dark-foregroundColor: rgba(59, 94, 108, 0.25)
-  --dark-foregroundOpaque: rgb(96, 138, 156)
+  --dark-backgroundColor: #170023
+  --dark-foregroundColor: rgb(121 112 126 / 0.25)
+  --dark-foregroundOpaque: rgb(76 53 89)
   --dark-textColor: rgba(240, 240, 240, 0.9)
-  --dark-accentColor: rgb(20, 86, 209)
-  --dark-shadowColor: rgba(159, 189, 228, 0.8)
+  --dark-accentColor: rgb(209 20 149)
+  --dark-shadowColor: rgb(223 161 196 / 0.8)
 
 @media (prefers-color-scheme: dark)
   html.auto
@@ -33,6 +33,22 @@ html.dark
   --accentColor: var(--dark-accentColor)
   --shadowColor: var(--dark-shadowColor)
 
+// Legacy themes
+html.leg-light
+  --backgroundColor: #bee7f3
+  --foregroundColor: rgba(111, 163, 161, 0.25)
+  --foregroundOpaque: rgb(89, 165, 172)
+  --textColor: rgba(0, 0, 0, 0.9)
+  --accentColor: rgb(117, 188, 232)
+  --shadowColor: rgba(6, 63, 73, 0.8)
+
+html.leg-dark
+  --backgroundColor: #001823
+  --foregroundColor: rgba(59, 94, 108, 0.25)
+  --foregroundOpaque: rgb(96, 138, 156)
+  --textColor: rgba(240, 240, 240, 0.9)
+  --accentColor: rgb(20, 86, 209)
+  --shadowColor: rgba(159, 189, 228, 0.8)
 
 // a35hie themes
 html.a35hie
@@ -76,14 +92,14 @@ html.neon
   --accentColor: rgb(209, 20, 206)
   --shadowColor: rgba(154, 122, 255, 0.8)
 
-// Pastel Pink theme
-html.pastel-pink
-  --backgroundColor: #f3a7ff
-  --foregroundColor: rgba(194, 126, 211, 0.25)
-  --foregroundOpaque: rgb(214, 99, 255)
-  --textColor: rgba(37, 0, 112, 0.9)
-  --accentColor: rgb(255, 65, 195)
-  --shadowColor: rgba(80, 9, 94, 0.8)
+// Pastel Blue theme
+html.pastel-blue
+  --backgroundColor: #a7f2ff
+  --foregroundColor: rgb(126 211 208 / 0.25)
+  --foregroundOpaque: rgb(99 226 255)
+  --textColor: rgb(0 82 112 / 0.9)
+  --accentColor: rgb(65 227 255)
+  --shadowColor: rgb(9 74 94 / 0.8)
 
 
 // SASS aliases

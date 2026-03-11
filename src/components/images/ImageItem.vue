@@ -29,11 +29,13 @@
     <img :src="image.imageUrl" :alt="image.title" loading="lazy" />
 
     <VStack class="info">
-      <h3>{{ image.title }}</h3>
+      <VStack>
+        <h3>{{ image.title }}</h3>
 
-      <VStack class="imageMeta noSpace">
-        <UsernameView :name="image.author" />
-        <p>{{ formatDate(image.createdDate) }}</p>
+        <VStack class="imageMeta noSpace">
+          <UsernameView :name="image.author" />
+          <p>{{ formatDate(image.createdDate) }}</p>
+        </VStack>
       </VStack>
 
       <HStack class="autoSpace actions" @click.stop>
@@ -53,9 +55,15 @@
 
         <HStack>
           <ShareButton
-            :id="image.id"
             :shares="image.shares"
-            api-path="/share-image"
+            :share-item="{
+              type: 'image',
+              id: image.id,
+              title: image.title,
+              author: image.author,
+              imageUrl: image.imageUrl,
+              shareApiPath: '/share-image',
+            }"
             :compact="!detailMode"
           />
 
@@ -93,9 +101,11 @@
       object-fit: cover
 
     .info
+      flex-grow: 1
       width: 100%
       padding: 0.75rem 1rem 0
+      justify-content: space-between
 
-    .imageMeta p
-      opacity: 0.7
+      .imageMeta p
+        opacity: 0.7
 </style>

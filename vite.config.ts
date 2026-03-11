@@ -15,14 +15,21 @@ export default defineConfig({
     vue(),
     vueDevTools(),
     VitePWA({
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'sw.ts',
+      devOptions: {
+        enabled: true,
+        type: 'module',
+      },
       registerType: 'autoUpdate',
       includeAssets: [ 'favicon.ico' ],
       manifest: {
         name: 'Byg Platform',
         short_name: 'Byg',
         description: 'Byg Platform for Web',
-        theme_color: '#69ffff',
-        background_color: '#557d8e',
+        theme_color: '#dd289e',
+        background_color: '#8e5586',
         display: 'standalone',
         start_url: '/',
         icons: [
