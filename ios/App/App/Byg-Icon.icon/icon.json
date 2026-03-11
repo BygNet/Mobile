@@ -1,32 +1,39 @@
 {
   "fill" : {
-    "automatic-gradient" : "extended-srgb:0.00000,0.75294,0.90980,1.00000"
+    "automatic-gradient" : "display-p3:0.84945,0.20298,0.65216,1.00000"
   },
   "groups" : [
     {
       "layers" : [
         {
-          "fill" : {
-            "solid" : "extended-gray:1.00000,1.00000"
-          },
-          "image-name" : "Y.png",
-          "name" : "Y",
-          "position" : {
-            "scale" : 1,
-            "translation-in-points" : [
-              165,
-              120
-            ]
-          }
+          "image-name" : "Eyes.png",
+          "name" : "Eyes"
         }
       ],
-      "position" : {
-        "scale" : 1,
-        "translation-in-points" : [
-          0,
-          0
-        ]
+      "shadow" : {
+        "kind" : "neutral",
+        "opacity" : 0.5
       },
+      "translucency" : {
+        "enabled" : true,
+        "value" : 0.7
+      }
+    },
+    {
+      "layers" : [
+        {
+          "fill-specializations" : [
+            {
+              "appearance" : "dark",
+              "value" : {
+                "solid" : "display-p3:0.84945,0.20298,0.65216,1.00000"
+              }
+            }
+          ],
+          "image-name" : "Mouth.png",
+          "name" : "Mouth"
+        }
+      ],
       "shadow" : {
         "kind" : "neutral",
         "opacity" : 0.5
